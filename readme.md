@@ -18,7 +18,7 @@ Navigate to the project directory in your terminal.
 
 Run the following command to install the required dependencies:
 
-Copy code
+
 npm install
 Configuration
 Before running the API Gateway, you need to configure the gRPC services and the port number for the API Gateway.
@@ -51,9 +51,66 @@ Run the following command:
 node apiGateway.js
 Once the API Gateway is running, you should see a message in the console indicating the port number:
 
-arduino
-Copy code
+
 API Gateway running on port 3000
+Endpoints
+Products
+GET /products: Retrieve a list of all products.
+GET /products/:id: Retrieve a product by ID.
+POST /products: Create a new product.
+PUT /products/:id: Update an existing product.
+DELETE /products/:id: Delete a product.
+Orders
+GET /orders: Retrieve a list of all orders.
+GET /orders/:id: Retrieve an order by ID.
+POST /orders: Create a new order.
+PUT /orders/:id: Update an existing order.
+DELETE /orders/:id: Delete an order.
+GraphQL Schema
+The API Gateway exposes the following GraphQL schema:
+
+graphql
+Copy code
+type Product {
+  id: String!
+  title: String!
+  description: String!
+}
+
+type Order {
+  id: String!
+  title: String!
+  description: String!
+}
+
+type Query {
+  product(id: String!): Product
+  products: [Product]
+  order(id: String!): Order
+  orders: [Order]
+}
+
+type Mutation {
+  addProduct(id: String!, title: String!, description: String!): Product
+  updateProduct(id: String!, title: String!, description: String!): Product
+  deleteProduct(id: String!): Boolean
+  addOrder(id: String!, title: String!, description: String!): Order
+  updateOrder(id: String!, title: String!, description: String!): Order
+  deleteOrder(id: String!): Boolean
+}
+Dependencies
+express
+@apollo/server
+body-parser
+cors
+@grpc/grpc-js
+@grpc/proto-loader
+Configuration
+The API Gateway requires the following gRPC service definitions:
+
+product.proto: Protobuf definition for the ProductService.
+order.proto: Protobuf definition for the OrderService.
+Make sure to update the file paths in the apiGateway.js file to match the location of your gRPC service definitions.
 API Endpoints
 The API Gateway exposes the following endpoints for interacting with the gRPC services:
 
