@@ -1,75 +1,73 @@
 const sqlite3 = require('sqlite3').verbose();
-
 const grpc = require('@grpc/grpc-js');
 const protoLoader = require('@grpc/proto-loader');
 
-
-const orderProtoPath = 'order.proto';
-const orderProtoDefinition = protoLoader.loadSync(orderProtoPath, {
+const articleProtoPath = 'article.proto';
+const articleProtoDefinition = protoLoader.loadSync(articleProtoPath, {
   keepCase: true,
   longs: String,
   enums: String,
   defaults: true,
   oneofs: true,
 });
-const orderProto = grpc.loadPackageDefinition(orderProtoDefinition).order;
+const articleProto = grpc.loadPackageDefinition(articleProtoDefinition).article;
 const db = new sqlite3.Database('./database.db'); 
 
 db.run(`
-  CREATE TABLE IF NOT EXISTS orders (
+  CREATE TABLE IF NOT EXISTS articles (
     id INTEGER PRIMARY KEY,
     title TEXT,
     description TEXT
   )
 `);
-const orderService = {
-  getOrder: (call, callback) => {
-    const { order_id } = call.request;
+const articleService = {
+  getArticle: (call, callback) => {
+    const { article_id } = call.request;
     
-    db.get('SELECT * FROM orders WHERE id = ?', [order_id], (err, row) => {
+    db.get('SELECT * FROM articles WHERE id = ?', [article_id], (err, row) => {
       if (err) {
         callback(err);
       } else if (row) {
-        const order = {
+        const article = {
           id: row.id,
           title: row.title,
           description: row.description,
         };
-        callback(null, { order });
+        callback(null, { article });
       } else {
-        callback(new Error('Order not found'));
+        callback(new Error('Article not found'));
       }
     });
   },
-  searchOrders: (call, callback) => {
-    db.all('SELECT * FROM orders', (err, rows) => {
+  searchArticles: (call, callback) => {
+    db.all('SELECT * FROM articles', (err, rows) => {
       if (err) {
         callback(err);
       } else {
-        const orders = rows.map((row) => ({
+        const articles = rows.map((row) => ({
           id: row.id,
           title: row.title,
           description: row.description,
         }));
-        callback(null, { orders });
+        callback(null, { articles });
       }
     });
   },
-  CreateOrder: (call, callback) => {
-    const { order_id, title, description } = call.request;
+  CreateArticle: (call, callback) => {
+    const { article_id, title, description } = call.request;
     db.run(
-      'INSERT INTO orders (id, title, description) VALUES (?, ?, ?)',
-      [order_id, title, description],
+      'INSERT INTO articles (id, title, description) VALUES (?, ?, ?)',
+      [article_id, title, description],
       function (err) {
         if (err) {
           callback(err);
         } else {
-          const order = {
-            id: order_id,
+          const article = {
+            id: article_id,
             title,
             description,
           };
-          callback(null, { order });
+          callback(null, { article });
         }
       }
     );
@@ -79,8 +77,8 @@ const orderService = {
 
 
 const server = new grpc.Server();
-server.addService(orderProto.OrderService.service, orderService);
-const port = 50052;
+server.addService(articleProto.ArticleService.service, articleService);
+const port = 50051;
 server.bindAsync(`0.0.0.0:${port}`, grpc.ServerCredentials.createInsecure(), (err, port) => {
     if (err) {
       console.error('Failed to bind server:', err);
@@ -90,4 +88,4 @@ server.bindAsync(`0.0.0.0:${port}`, grpc.ServerCredentials.createInsecure(), (er
     console.log(`Server is running on port ${port}`);
     server.start();
   });
-console.log(`Order microservice running on port ${port}`);
+console.log(`Article microservice running on port ${port}`);

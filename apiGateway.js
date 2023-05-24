@@ -6,8 +6,8 @@ const cors = require('cors');
 const grpc = require('@grpc/grpc-js');
 const protoLoader = require('@grpc/proto-loader');
 
-const productProtoPath = 'product.proto';
-const orderProtoPath = 'order.proto';
+const articleProtoPath = 'article.proto';
+const bookProtoPath = 'book.proto';
 
 const resolvers = require('./resolvers');
 const typeDefs = require('./schema');
@@ -15,27 +15,27 @@ const typeDefs = require('./schema');
 const app = express();
 app.use(bodyParser.json());
 
-const productProtoDefinition = protoLoader.loadSync(productProtoPath, {
+const articleProtoDefinition = protoLoader.loadSync(articleProtoPath, {
   keepCase: true,
   longs: String,
   enums: String,
   defaults: true,
   oneofs: true,
 });
-const orderProtoDefinition = protoLoader.loadSync(orderProtoPath, {
+const bookProtoDefinition = protoLoader.loadSync(bookProtoPath, {
   keepCase: true,
   longs: String,
   enums: String,
   defaults: true,
   oneofs: true,
 });
-const productProto = grpc.loadPackageDefinition(productProtoDefinition).product;
-const orderProto = grpc.loadPackageDefinition(orderProtoDefinition).order;
-const clientProducts = new productProto.ProductService(
+const articleProto = grpc.loadPackageDefinition(articleProtoDefinition).article;
+const bookProto = grpc.loadPackageDefinition(bookProtoDefinition).book;
+const clientArticles = new articleProto.ArticleService(
   'localhost:50051',
   grpc.credentials.createInsecure()
 );
-const clientOrders = new orderProto.OrderService(
+const clientBooks = new bookProto.BookService(
   'localhost:50052',
   grpc.credentials.createInsecure()
 );
@@ -46,59 +46,59 @@ server.start().then(() => {
   app.use(cors(), bodyParser.json(), expressMiddleware(server));
 });
 
-app.get('/products', (req, res) => {
-  clientProducts.searchProducts({}, (err, response) => {
+app.get('/articles', (req, res) => {
+  clientArticles.searchArticles({}, (err, response) => {
     if (err) {
       res.status(500).send(err);
     } else {
-      res.json(response.products);
+      res.json(response.articles);
     }
   });
 });
 
-app.post('/products', (req, res) => {
+app.post('/articles', (req, res) => {
   const { id, title, description } = req.body;
-  clientProducts.createProduct(
-    { product_id: id, title: title, description: description },
+  clientArticles.createArticle(
+    { article_id: id, title: title, description: description },
     (err, response) => {
       if (err) {
         res.status(500).send(err);
       } else {
-        res.json(response.product);
+        res.json(response.article);
       }
     }
   );
 });
 
-app.get('/products/:id', (req, res) => {
+app.get('/articles/:id', (req, res) => {
   const id = req.params.id;
-  clientProducts.getProduct({ productId: id }, (err, response) => {
+  clientArticles.getArticle({ articleId: id }, (err, response) => {
     if (err) {
       res.status(500).send(err);
     } else {
-      res.json(response.product);
+      res.json(response.article);
     }
   });
 });
 
-app.put('/products/:id', (req, res) => {
+app.put('/articles/:id', (req, res) => {
   const id = req.params.id;
   const { title, description } = req.body;
-  clientProducts.updateProduct(
-    { product_id: id, title: title, description: description },
+  clientArticles.updateArticle(
+    { article_id: id, title: title, description: description },
     (err, response) => {
       if (err) {
         res.status(500).send(err);
       } else {
-        res.json(response.product);
+        res.json(response.article);
       }
     }
   );
 });
 
-app.delete('/products/:id', (req, res) => {
+app.delete('/articles/:id', (req, res) => {
   const id = req.params.id;
-  clientProducts.deleteProduct({ product_id: id }, (err, response) => {
+  clientArticles.deleteArticle({ article_id: id }, (err, response) => {
     if (err) {
       res.status(500).send(err);
     } else {
@@ -107,59 +107,59 @@ app.delete('/products/:id', (req, res) => {
   });
 });
 
-app.get('/orders', (req, res) => {
-  clientOrders.searchOrders({}, (err, response) => {
+app.get('/books', (req, res) => {
+  clientBooks.searchBooks({}, (err, response) => {
     if (err) {
       res.status(500).send(err);
     } else {
-      res.json(response.orders);
+      res.json(response.books);
     }
   });
 });
 
-app.post('/orders', (req, res) => {
+app.post('/books', (req, res) => {
   const { id, title, description } = req.body;
-  clientOrders.createOrder(
-    { order_id: id, title: title, description: description },
+  clientBooks.createBook(
+    { book_id: id, title: title, description: description },
     (err, response) => {
       if (err) {
         res.status(500).send(err);
       } else {
-        res.json(response.order);
+        res.json(response.book);
       }
     }
   );
 });
 
-app.get('/orders/:id', (req, res) => {
+app.get('/books/:id', (req, res) => {
   const id = req.params.id;
-  clientOrders.getOrder({ order_id: id }, (err, response) => {
+  clientBooks.getBook({book_id: id }, (err, response) => {
     if (err) {
       res.status(500).send(err);
     } else {
-      res.json(response.order);
+      res.json(response.book);
     }
   });
 });
 
-app.put('/orders/:id', (req, res) => {
+app.put('/books/:id', (req, res) => {
   const id = req.params.id;
   const { title, description } = req.body;
-  clientOrders.updateOrder(
-    { order_id: id, title: title, description: description },
+  clientBooks.updateBook(
+    { book_id: id, title: title, description: description },
     (err, response) => {
       if (err) {
         res.status(500).send(err);
       } else {
-        res.json(response.order);
+        res.json(response.book);
       }
     }
   );
 });
 
-app.delete('/orders/:id', (req, res) => {
+app.delete('/books/:id', (req, res) => {
   const id = req.params.id;
-  clientOrders.deleteOrder({ order_id: id }, (err, response) => {
+  clientBooks.deleteBook({ book_id: id }, (err, response) => {
     if (err) {
       res.status(500).send(err);
     } else {

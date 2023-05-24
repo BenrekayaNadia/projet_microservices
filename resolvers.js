@@ -4,31 +4,31 @@ const grpc = require('@grpc/grpc-js');
 const protoLoader = require('@grpc/proto-loader');
 
 
-const productProtoPath = 'product.proto';
-const orderProtoPath = 'order.proto';
-const productProtoDefinition = protoLoader.loadSync(productProtoPath, {
+const articleProtoPath = 'article.proto';
+const bookProtoPath = 'book.proto';
+const articleProtoDefinition = protoLoader.loadSync(articleProtoPath, {
   keepCase: true,
   longs: String,
   enums: String,
   defaults: true,
   oneofs: true,
 });
-const orderProtoDefinition = protoLoader.loadSync(orderProtoPath, {
+const bookProtoDefinition = protoLoader.loadSync(bookProtoPath, {
   keepCase: true,
   longs: String,
   enums: String,
   defaults: true,
   oneofs: true,
 });
-const productProto = grpc.loadPackageDefinition(productProtoDefinition).product;
-const orderProto = grpc.loadPackageDefinition(orderProtoDefinition).order;
-const clientProducts = new productProto.ProductService('localhost:50051', grpc.credentials.createInsecure());
-const clientOrders = new orderProto.OrderService('localhost:50052', grpc.credentials.createInsecure());
+const articleProto = grpc.loadPackageDefinition(articleProtoDefinition).article;
+const bookProto = grpc.loadPackageDefinition(bookProtoDefinition).book;
+const clientArticles = new articleProto.ArticleService('localhost:50051', grpc.credentials.createInsecure());
+const clientBooks = new bookProto.BookService('localhost:50052', grpc.credentials.createInsecure());
 
 const db = new sqlite3.Database('./database.db');
 
 db.run(`
-  CREATE TABLE IF NOT EXISTS products (
+  CREATE TABLE IF NOT EXISTS articles (
     id INTEGER PRIMARY KEY,
     title TEXT,
     description TEXT
@@ -36,7 +36,7 @@ db.run(`
 `);
 
 db.run(`
-  CREATE TABLE IF NOT EXISTS orders (
+  CREATE TABLE IF NOT EXISTS books (
     id INTEGER PRIMARY KEY,
     title TEXT,
     description TEXT
@@ -46,9 +46,9 @@ db.run(`
 
 const resolvers = {
   Query: {
-    order: (_, { id }) => {
+    book: (_, { id }) => {
       return new Promise((resolve, reject) => {
-        db.get('SELECT * FROM orders WHERE id = ?', [id], (err, row) => {
+        db.get('SELECT * FROM books WHERE id = ?', [id], (err, row) => {
           if (err) {
             reject(err);
           } else if (row) {
@@ -59,9 +59,9 @@ const resolvers = {
         });
       });
     },
-    orders: () => {
+    books: () => {
       return new Promise((resolve, reject) => {
-        db.all('SELECT * FROM orders', (err, rows) => {
+        db.all('SELECT * FROM books', (err, rows) => {
           if (err) {
             reject(err);
           } else {
@@ -70,9 +70,9 @@ const resolvers = {
         });
       });
     },
-    product: (_, { id }) => {
+    article: (_, { id }) => {
       return new Promise((resolve, reject) => {
-        db.get('SELECT * FROM products WHERE id = ?', [id], (err, row) => {
+        db.get('SELECT * FROM articles WHERE id = ?', [id], (err, row) => {
           if (err) {
             reject(err);
           } else if (row) {
@@ -83,9 +83,9 @@ const resolvers = {
         });
       });
     },
-    products: () => {
+    articles: () => {
       return new Promise((resolve, reject) => {
-        db.all('SELECT * FROM products', (err, rows) => {
+        db.all('SELECT * FROM articles', (err, rows) => {
           if (err) {
             reject(err);
           } else {
@@ -96,9 +96,9 @@ const resolvers = {
     },
 },
 Mutation: {
-    addOrder: (_, { id,title, description }) => {
+    addBook: (_, { id,title, description }) => {
       return new Promise((resolve, reject) => {
-        db.run('INSERT INTO orders (id,title, description) VALUES (?, ?, ?)', [id,title, description], function (err) {
+        db.run('INSERT INTO books (id,title, description) VALUES (?, ?, ?)', [id,title, description], function (err) {
           if (err) {
             reject(err);
           } else {
@@ -107,9 +107,9 @@ Mutation: {
         });
       });
     },
-    addProduct: (_, { id,title, description }) => {
+    addArticle: (_, { id,title, description }) => {
       return new Promise((resolve, reject) => {
-        db.run('INSERT INTO products (title, description) VALUES (?, ?)', [title, description], function (err) {
+        db.run('INSERT INTO articles (title, description) VALUES (?, ?)', [title, description], function (err) {
           if (err) {
             reject(err);
           } else {
@@ -118,52 +118,52 @@ Mutation: {
         });
       });
     },
-    updateProduct: (_, { id, title, description }) => {
+    updateArticle: (_, { id, title, description }) => {
       return new Promise((resolve, reject) => {
-        db.run('UPDATE products SET title = ?, description = ? WHERE id = ?', [title, description, id], function (err) {
+        db.run('UPDATE articles SET title = ?, description = ? WHERE id = ?', [title, description, id], function (err) {
           if (err) {
             reject(err);
           } else if (this.changes === 0) {
-            reject(new Error('Product not found'));
+            reject(new Error('Article not found'));
           } else {
             resolve({ id, title, description });
           }
         });
       });
     },
-    deleteProduct: (_, { id }) => {
+    deleteArticle: (_, { id }) => {
       return new Promise((resolve, reject) => {
-        db.run('DELETE FROM products WHERE id = ?', [id], function (err) {
+        db.run('DELETE FROM articles WHERE id = ?', [id], function (err) {
           if (err) {
             reject(err);
           } else if (this.changes === 0) {
-            reject(new Error('Product not found'));
+            reject(new Error('Article not found'));
           } else {
             resolve(true);
           }
         });
       });
     },
-    updateOrder: (_, { id, title, description }) => {
+    updateBook: (_, { id, title, description }) => {
       return new Promise((resolve, reject) => {
-        db.run('UPDATE orders SET title = ?, description = ? WHERE id = ?', [title, description, id], function (err) {
+        db.run('UPDATE books SET title = ?, description = ? WHERE id = ?', [title, description, id], function (err) {
           if (err) {
             reject(err);
           } else if (this.changes === 0) {
-            reject(new Error('Order not found'));
+            reject(new Error('Book not found'));
           } else {
             resolve({ id, title, description });
           }
         });
       });
     },
-    deleteOrder: (_, { id }) => {
+    deleteBook: (_, { id }) => {
       return new Promise((resolve, reject) => {
-        db.run('DELETE FROM orders WHERE id = ?', [id], function (err) {
+        db.run('DELETE FROM books WHERE id = ?', [id], function (err) {
           if (err) {
             reject(err);
           } else if (this.changes === 0) {
-            reject(new Error('Order not found'));
+            reject(new Error('Book not found'));
           } else {
             resolve(true);
           }

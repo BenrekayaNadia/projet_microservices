@@ -1,31 +1,31 @@
 const { gql } = require('@apollo/server');
 
 const typeDefs = `#graphql
-  type Product {
+  type Article {
     id: String!
     title: String!
     description: String!
   }
 
-  type Order {
+  type Book {
     id: String!
     title: String!
     description: String!
   }
 
   type Query {
-    product(id: String!): Product
-    products: [Product]
-    order(id: String!): Order
-    orders: [Order]
+    article(id: String!): Article
+    articles: [Article]
+    book(id: String!): Book
+    books: [Book]
   }
   type Mutation {
-    addProduct(id: String!, title: String!, description:String!): Product
-    addOrder(id: String!, title: String!, description:String!): Order
-    deleteProduct(id: String!): Boolean
-    updateProduct(id: String!, title: String!, description: String!): Product
-    updateOrder(id: String!, title: String!, description: String!): Order
-    deleteOrder(id: String!): Boolean
+    addArticle(id: String!, title: String!, description:String!): Article
+    addBook(id: String!, title: String!, description:String!): Book
+    deleteArticle(id: String!): Boolean
+    updateArticle(id: String!, title: String!, description: String!): Article
+    updateBook(id: String!, title: String!, description: String!): Book
+    deleteBook(id: String!): Boolean
   }
 `;
 

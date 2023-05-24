@@ -1,73 +1,75 @@
 const sqlite3 = require('sqlite3').verbose();
+
 const grpc = require('@grpc/grpc-js');
 const protoLoader = require('@grpc/proto-loader');
 
-const productProtoPath = 'product.proto';
-const productProtoDefinition = protoLoader.loadSync(productProtoPath, {
+
+const bookProtoPath = 'book.proto';
+const bookProtoDefinition = protoLoader.loadSync(bookProtoPath, {
   keepCase: true,
   longs: String,
   enums: String,
   defaults: true,
   oneofs: true,
 });
-const productProto = grpc.loadPackageDefinition(productProtoDefinition).product;
+const bookProto = grpc.loadPackageDefinition(bookProtoDefinition).book;
 const db = new sqlite3.Database('./database.db'); 
 
 db.run(`
-  CREATE TABLE IF NOT EXISTS products (
+  CREATE TABLE IF NOT EXISTS books (
     id INTEGER PRIMARY KEY,
     title TEXT,
     description TEXT
   )
 `);
-const productService = {
-  getProduct: (call, callback) => {
-    const { product_id } = call.request;
+const bookService = {
+  getBook: (call, callback) => {
+    const { book_id } = call.request;
     
-    db.get('SELECT * FROM products WHERE id = ?', [product_id], (err, row) => {
+    db.get('SELECT * FROM books WHERE id = ?', [book_id], (err, row) => {
       if (err) {
         callback(err);
       } else if (row) {
-        const product = {
+        const book = {
           id: row.id,
           title: row.title,
           description: row.description,
         };
-        callback(null, { product });
+        callback(null, { book });
       } else {
-        callback(new Error('Product not found'));
+        callback(new Error('Book not found'));
       }
     });
   },
-  searchProducts: (call, callback) => {
-    db.all('SELECT * FROM products', (err, rows) => {
+  searchBooks: (call, callback) => {
+    db.all('SELECT * FROM books', (err, rows) => {
       if (err) {
         callback(err);
       } else {
-        const products = rows.map((row) => ({
+        const books = rows.map((row) => ({
           id: row.id,
           title: row.title,
           description: row.description,
         }));
-        callback(null, { products });
+        callback(null, { books });
       }
     });
   },
-  CreateProduct: (call, callback) => {
-    const { product_id, title, description } = call.request;
+  CreateBook: (call, callback) => {
+    const { book_id, title, description } = call.request;
     db.run(
-      'INSERT INTO products (id, title, description) VALUES (?, ?, ?)',
-      [product_id, title, description],
+      'INSERT INTO books (id, title, description) VALUES (?, ?, ?)',
+      [order_id, title, description],
       function (err) {
         if (err) {
           callback(err);
         } else {
-          const product = {
-            id: product_id,
+          const book = {
+            id: book_id,
             title,
             description,
           };
-          callback(null, { product });
+          callback(null, { book });
         }
       }
     );
@@ -77,8 +79,8 @@ const productService = {
 
 
 const server = new grpc.Server();
-server.addService(productProto.ProductService.service, productService);
-const port = 50051;
+server.addService(bookProto.BookService.service, bookService);
+const port = 50052;
 server.bindAsync(`0.0.0.0:${port}`, grpc.ServerCredentials.createInsecure(), (err, port) => {
     if (err) {
       console.error('Failed to bind server:', err);
@@ -88,4 +90,4 @@ server.bindAsync(`0.0.0.0:${port}`, grpc.ServerCredentials.createInsecure(), (er
     console.log(`Server is running on port ${port}`);
     server.start();
   });
-console.log(`Product microservice running on port ${port}`);
+console.log(`Book microservice running on port ${port}`);
